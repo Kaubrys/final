@@ -90,7 +90,6 @@ app.post("/updateitem", auth,async(req, res) => {
 });
 
 app.get("/getallitems", async(req, res) => {
-   // const {} = req.body;
     const all = await Service.find({});
 
     res.status(200).json(all);
@@ -174,15 +173,14 @@ app.post("/login", async(req, res) => {
             // user
             res.status(200).json(user);
         }
-        // res.status(400).send("Invalid Credentials");
+
     } catch (err) {
         console.log(err);
     }
-    // Our register logic ends here
+
 });
 
 
 app.post("/welcome", auth, (req, res) => {
     res.status(200).send("Welcome 🙌 ");
 });
-
