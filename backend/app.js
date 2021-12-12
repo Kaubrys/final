@@ -3,18 +3,100 @@ require("./config/database").connect();
 const express = require("express");
 
 const app = express();
-var bcrypt = require('bcryptjs');
+let bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
+const auth = require("./middleware/auth");
+let mongodb = require('mongodb');
 
 app.use(express.json());
 
-// Logic goes here
 
 module.exports = app;
 
 // importing user context
 const User = require("./model/user");
+const Service = require("./model/service");
 
+app.post("/additem", auth, async(req, res) => {
+    const { id ,descritpion, work_cost, material_cost} = req.body;
+
+    try{
+    // Validate user inputx`
+    if (!(id && descritpion && work_cost && material_cost)) {
+        res.status(400).send("All input is required");
+    }
+    
+    const oldService = await Service.findOne({ id });
+
+    if (oldService) {
+        return res.status(409).send("Serice Already Exist. Change id");
+    }
+     // Create user in our database
+    const service = await Service.create({
+        id,
+        descritpion,
+        work_cost, 
+        material_cost,
+    });
+    if(service){
+        res.status(200).json(service);
+    }
+    else{
+        res.status(500).send("internal server error")
+    }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("internal server error")
+    }
+
+});
+
+app.delete("/deleteitem", auth, async(req, res) => {
+    const { id } = req.body;
+    const delelte_item = await Service.findOne({ id });
+    const service_item = Service.deleteOne({_id: new mongodb.ObjectID(delelte_item._id)}, function(err, results) {
+        if (err){
+          console.log("failed");
+          res.status(500)
+          throw err;
+        }
+        console.log("success");
+        res.status(200)
+     });
+    
+});
+
+app.post("/updateitem", auth,async(req, res) => {
+    const { id ,descritpion, work_cost, material_cost} = req.body;
+
+    const updateDoc = {
+        $set: {
+            descritpion,
+            work_cost, 
+            material_cost
+        }
+    };
+     
+     const item = await Service.updateOne({id},updateDoc, function(err, results) {
+        if (err){
+          console.log("failed");
+          res.status(500).send("Success failed");
+          throw err;
+        }
+        console.log("success");
+        res.status(200).send("Success updated");
+    });
+
+});
+
+app.get("/getallitems", async(req, res) => {
+   // const {} = req.body;
+    const all = await Service.find({});
+
+    res.status(200).json(all);
+
+    
+});
 
 app.post("/register", async(req, res) => {
 
@@ -99,8 +181,8 @@ app.post("/login", async(req, res) => {
     // Our register logic ends here
 });
 
-const auth = require("./middleware/auth");
 
 app.post("/welcome", auth, (req, res) => {
     res.status(200).send("Welcome 🙌 ");
 });
+
