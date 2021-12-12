@@ -80,7 +80,7 @@ app.post("/updateitem", auth,async(req, res) => {
      const item = await Service.updateOne({id},updateDoc, function(err, results) {
         if (err){
           console.log("failed");
-          res.status(500).send("Success failed");
+          res.status(500).send("Internal server error");
           throw err;
         }
         console.log("success");
